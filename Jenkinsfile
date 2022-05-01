@@ -69,6 +69,7 @@ pipeline {
                 docker-compose  up -d build-agent
                 '''
             }
+               post {
 
                 failure {
                     echo 'Deply failed!'
@@ -79,7 +80,7 @@ pipeline {
                     to: 'marcind1999@gmail.com'
                 }
 
-               post {
+               
  
                     success {
                     echo 'Successful deploy!'
