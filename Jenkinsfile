@@ -1,78 +1,97 @@
 pipeline {
-    agent {
-        docker { image 'node:latest' }
-    }
+    agent any
+  
     stages {
         stage('Build') {
             steps {
-                echo 'Building.......'
-		checkout scm
-		sh 'npm install'
-		sh 'npm run build'
+                
+                sh '''
+                echo 'Building... '
+                docker-compose  build  build-agent
+                '''
             }
-	      post {
-        failure {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Build failed in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-        success {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Successful build in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-    }
+
+             failure {
+                    echo 'Build failed!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Build failed",
+                    to: 'marcind1999@gmail.com'
+                }
+                  
+            post {
+                success {
+                    echo 'Succesful build!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Succesful build",
+                    to: 'marcind1999@gmail.com'
+                }
+            
+               
+            }
         }
         stage('Test') {
-	   when {
-              	expression {currentBuild.result == null || currentBuild.result == 'SUCCESS'}
-            }
             steps {
-                echo 'Testing..........'
-		sh 'npm test'
+                sh '''
+                echo 'Testing...'
+                docker-compose  build  test-agent
+                '''
+
             }
-	     post {
-        failure {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Test failed in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-        success {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Successful test in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-    }
+               post {
+               
+                failure {
+                    echo 'Tests failed!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Tests failed",
+                    to: 'marcind1999@gmail.com'
+                }
+
+                 success {
+                    echo 'Succesful tests!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Succesful tests",
+                    to: 'marcind1999@gmail.com'
+                }
+            }
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying......'
-		        sh 'docker build -t delta-chat -f Dockerfile-deploy .'
+                sh '''
+                echo 'Deploying...'
+                docker-compose  up -d build-agent
+                '''
             }
-	  post {
-        failure {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Deploy failed in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-        success {
-            emailext attachLog: true,
-                body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
-                recipientProviders: [developers(), requestor()],
-                to: 'marcind1999@gmail.com',
-                subject: "Successful deploy in Jenkins ${currentBuild.currentResult}: Job ${env.JOB_NAME}"
-        }
-    }
+
+                failure {
+                    echo 'Deply failed!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Deply failed",
+                    to: 'marcind1999@gmail.com'
+                }
+
+               post {
+ 
+                    success {
+                    echo 'Successful deploy!'
+                    emailext attachLog: true,
+                    body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
+                    recipientProviders: [developers(), requestor()],
+                    subject: "Successful deploy",
+                    to: 'marcind1999@gmail.com'
+                }
+            
+               
+            }
         }
     }
 }
