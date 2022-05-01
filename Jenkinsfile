@@ -10,8 +10,9 @@ pipeline {
                 docker-compose  build  build-agent
                 '''
             }
+               post {
 
-             failure {
+                failure {
                     echo 'Build failed!'
                     emailext attachLog: true,
                     body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}",
@@ -20,7 +21,6 @@ pipeline {
                     to: 'marcind1999@gmail.com'
                 }
                   
-            post {
                 success {
                     echo 'Succesful build!'
                     emailext attachLog: true,
